@@ -1,26 +1,7 @@
-cmake_minimum_required(VERSION 2.6)
-project(assignment2)
+cmake_minimum_required(VERSION 3.1)
+project(ex2)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-find_package(LIBIGL QUIET)
-
-if (NOT LIBIGL_FOUND)
-   message(FATAL_ERROR "libigl not found --- You can download it using: \n git clone --recursive https://github.com/libigl/libigl.git ${PROJECT_SOURCE_DIR}/../libigl")
-endif()
-
-# Compilation flags: adapt to your needs 
-if(MSVC)
-  # Enable parallel compilation
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj") 
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR} )
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR} )
-else()
-  # Libigl requires a modern C++ compiler that supports c++11
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") 
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "." )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
-endif()
 
 # libigl options: choose between header only and compiled static library
 # Header-only is preferred for small projects. For larger projects the static build
@@ -45,27 +26,12 @@ option(LIBIGL_WITH_COMISO      "Use CoMiso"         OFF)
 option(LIBIGL_WITH_MATLAB      "Use Matlab"         OFF) # This option is not supported yet
 option(LIBIGL_WITH_MOSEK       "Use MOSEK"          OFF) # This option is not supported yet
 option(LIBIGL_WITH_CGAL        "Use CGAL"           OFF)
-if(LIBIGL_WITH_CGAL) # Do not remove or move this block, the cgal build system fails without it
-  find_package(CGAL REQUIRED)
-  set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE CACHE BOOL "CGAL's CMAKE Setup is super annoying ")
-  include(${CGAL_USE_FILE})
-endif()
 
-# Adding libigl: choose the path to your local copy libigl 
-# This is going to compile everything you requested 
-#message(FATAL_ERROR "${PROJECT_SOURCE_DIR}/../libigl/cmake")
-add_subdirectory("${LIBIGL_INCLUDE_DIR}/../shared/cmake" "libigl")
 
-# libigl information 
-message("libigl includes: ${LIBIGL_INCLUDE_DIRS}")
-message("libigl libraries: ${LIBIGL_LIBRARIES}")
-message("libigl extra sources: ${LIBIGL_EXTRA_SOURCES}")
-message("libigl extra libraries: ${LIBIGL_EXTRA_LIBRARIES}")
-message("libigl definitions: ${LIBIGL_DEFINITIONS}")
+find_package(LIBIGL QUIET)
+
 
 # Prepare the build environment
-include_directories(${LIBIGL_INCLUDE_DIRS})
-add_definitions(${LIBIGL_DEFINITIONS})
 
 # Add your project files
 # Note: we need some stubs for building to succeed on TravisCI.
@@ -76,4 +42,4 @@ else (TRAVISCI_BUILD)
 endif (TRAVISCI_BUILD)
 
 add_executable(${PROJECT_NAME}_bin ${SOURCES} ${LIBIGL_EXTRA_SOURCES})
-target_link_libraries(${PROJECT_NAME}_bin ${LIBIGL_LIBRARIES} ${LIBIGL_EXTRA_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_bin igl::core igl::viewer)
